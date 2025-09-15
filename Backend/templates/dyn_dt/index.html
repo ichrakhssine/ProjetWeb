@@ -1,0 +1,61 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <div class="page-inner">
+
+        <div class="page-header">
+			<h4 class="page-title">Dynamic DT</h4>
+			<ul class="breadcrumbs">
+				<li class="nav-home">
+					<a href="#">
+						<i class="flaticon-home"></i>
+					</a>
+				</li>
+				<li class="separator">
+					<i class="flaticon-right-arrow"></i>
+				</li>
+				<li class="nav-item">
+					<a href="/">Home</a>
+				</li>
+				<li class="separator">
+					<i class="flaticon-right-arrow"></i>
+				</li>
+				<li class="nav-item">
+					<a href="{{ url_for('table_blueprint.dynamic_dt') }}">Dynamic DT</a>
+				</li>
+			</ul>
+		</div>
+
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Available Routes (defined in config.DYNAMIC_DATATB)</h5>
+                    </div>
+                    <div class="card-block px-4">
+                        <ul class="pc-submenu mt-3">
+                            {% for link in routes %}
+                                <li class="pc-item">
+                                    <a class="pc-link" href="{{ url_for('table_blueprint.model_dt', aPath=link) }}">{{ link }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

@@ -1,0 +1,119 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Login {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="page-inner">
+    <div class="page-header">
+        <h4 class="page-title">Login</h4>
+        <ul class="breadcrumbs">
+            <li class="nav-home">
+                <a href="#">
+                    <i class="flaticon-home"></i>
+                </a>
+            </li>
+            <li class="separator">
+                <i class="flaticon-right-arrow"></i>
+            </li>
+            <li class="nav-item">
+                <a href="#">Authentication</a>
+            </li>
+            <li class="separator">
+                <i class="flaticon-right-arrow"></i>
+            </li>
+            <li class="nav-item">
+                <a href="#">Login</a>
+            </li>
+        </ul>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        {% if msg %}
+                            <span class="text-danger">{{ msg | safe }}</span>
+                        {% else %}
+                        <span>
+                            Add your credentials
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mx-4">
+                    {% if has_github %}
+                    <div class="text-center mt-4">
+                      <a href="{{ url_for('github.login') }}" style="cursor: pointer;" class="d-inline-block p-2 rounded border text-secondary">
+                        <span class="pc-micon">
+                            <i class="fab fa-github"></i>
+                        </span>
+                      </a>
+                    </div>
+                    {% endif %}
+      
+                    {% if has_google %}
+                    <div class="text-center mt-4 ml-2">
+                      <a href="{{ url_for('google.login') }}" style="cursor: pointer;" class="d-inline-block p-2 rounded border text-secondary">
+                        <span class="pc-micon">
+                          <i class="fab fa-google"></i>
+                        </span>
+                      </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form method="post" action="">
+
+                    {{ form.hidden_tag() }}
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4">
+
+                                <div class="form-group">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="icon-user"></i>
+                                            </span>
+                                        </div>
+                                        {{ form.username(placeholder="Username", class="form-control") }}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="icon-lock"></i>
+                                            </span>
+                                        </div>
+                                        {{ form.password(placeholder="Password", class="form-control", type="password") }}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <button type="submit" name="login" class="btn btn-success">Submit</button>
+                        &nbsp; &nbsp;
+                        <span>Not a member?</span> Please <a href="{{ url_for('authentication_blueprint.register') }}" >Register</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
