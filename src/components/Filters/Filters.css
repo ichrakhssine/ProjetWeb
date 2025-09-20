@@ -1,0 +1,45 @@
+.filters {
+  flex: 1;
+  background: rgba(26, 31, 75, 0.5);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(106, 64, 191, 0.3);
+  align-self: flex-start;
+}
+
+.filter-group {
+  margin-bottom: 25px;
+}
+
+.filter-group h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: var(--comet-cyan);
+  display: flex;
+  align-items: center;
+}
+
+.filter-group h3 i {
+  margin-right: 10px;
+}
+
+.filter-options label {
+  display: block;
+  margin-bottom: 10px;
+  cursor: pointer;
+  padding: 5px 0;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+  padding-left: 10px;
+}
+
+.filter-options label:hover {
+  background: rgba(106, 64, 191, 0.2);
+}
+
+.filter-options input {
+  margin-right: 10px;
+  accent-color: var(--stellar-purple);
+}
