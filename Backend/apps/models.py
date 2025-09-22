@@ -47,6 +47,7 @@ class BaseModel(db.Model):
             db.session.rollback()
             error = str(e.__dict__['orig'])
             raise InvalidUsage(error, 422)
+        
 
 
 # ===============================

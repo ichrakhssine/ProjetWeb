@@ -28,7 +28,7 @@
 										</a>
 									</li>
 									<li>
-										<a href="{{ url_for('authentication_blueprint.logout') }}">
+										<a href="{{ url_for('authentication.logout') }}">
 											<span class="link-collapse">Logout</span>
 										</a>
 									</li>
@@ -46,12 +46,12 @@
 							<div class="collapse {% if 'apps' in parent %} show {% endif %}" id="apps">
 								<ul class="nav nav-collapse">
 									<li>
-										<a href="{{ url_for('table_blueprint.dynamic_dt') }}">
+										<a href="{{ url_for('authentication.login') }}">
 											<span class="sub-item">Dynamic Tables</span>
 										</a>
 									</li>
 									<li>
-										<a href="{{ url_for('charts_blueprint.charts') }}">
+										<a href="{{ url_for('authentication.login') }}">
 											<span class="sub-item">Charts</span>
 										</a>
 									</li>

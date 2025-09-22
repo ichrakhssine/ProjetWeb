@@ -81,11 +81,13 @@ def create_app(config_class):
             }
         })
 
-    # Route pour la racine de l'application
+    # Ensuite définir la route racine
     @app.route('/')
     def index():
-        return redirect(url_for('authentication.login'))
-
+        return redirect('/login')
+   
+    
+    
     # Gestionnaire d'utilisateur pour Flask-Login
     from apps.authentication.models import User
     

@@ -19,10 +19,9 @@ const Header = ({ showNotification }) => {
         <div className="header-top">
           <div className="logo">
             <i className="fas fa-rocket"></i>
-            GalaxyJobs
+            Parfait
           </div>
           <div className="auth-buttons">
-            <a href="#"><i className="fas fa-briefcase"></i> Employeurs</a>
             <a href="#"><i className="fas fa-sign-in-alt"></i> Connexion</a>
             <a href="#"><i className="fas fa-user-plus"></i> Inscription</a>
           </div>

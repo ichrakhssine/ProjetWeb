@@ -1,151 +1,174 @@
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from apps import db
+from apps.authentication.models import User, UserRole
+from apps.models import Candidat, Recruteur
+from datetime import datetime
 
-from flask import render_template, redirect, request, url_for
-from flask_login import (
-    current_user,
-    login_user,
-    logout_user
-)
-from flask_dance.contrib.github import github
-from flask_dance.contrib.google import google
+auth_bp = Blueprint('auth', __name__)
 
-from apps import db, login_manager
-from apps.authentication.forms import LoginForm, CreateAccountForm
-from apps.authentication.models import User
-from apps.config import Config
+# Route pour afficher la page de login
+@auth_bp.route('/login', methods=['GET'])
+def login_page():
+    return render_template('login.html')
 
-from apps.authentication.util import verify_pass
+# Route pour afficher la page d'inscription
+@auth_bp.route('/register', methods=['GET'])
+def register_page():
+    return render_template('register.html')
 
-# Importer le blueprint depuis le module actuel
-from . import blueprint
-
-@blueprint.route('/')
-def route_default():
-    return redirect(url_for('authentication.login'))
-
-
-# Login & Registration
-
-@blueprint.route("/github")
-def login_github():
-    """ Github login """
-    if not github.authorized:
-        return redirect(url_for("github.login"))
-
-    res = github.get("/user")
-    return redirect(url_for('home_blueprint.index'))
-
-
-@blueprint.route("/google")
-def login_google():
-    """ Google login """
-    if not google.authorized:
-        return redirect(url_for("google.login"))
-
-    res = google.get("/oauth2/v1/userinfo")
-    return redirect(url_for('home_blueprint.index'))
-
-
-@blueprint.route('/login', methods=['GET', 'POST'])
+# Route pour traiter le formulaire de login
+@auth_bp.route('/login', methods=['POST'])
 def login():
-    login_form = LoginForm(request.form)
-    if 'login' in request.form:
-
-        # read form data
-        username = request.form['username']
-        password = request.form['password']
-
-        # Locate user
-        user = User.query.filter_by(username=username).first()
-
-        # Check the password
-        if user and verify_pass(password, user.password):
-
-            login_user(user)
-            return redirect(url_for('authentication.route_default'))
-
-        # Something (user or pass) is not ok
-        return render_template('accounts/login.html',
-                               msg='Wrong user or password',
-                               form=login_form)
-
-    if not current_user.is_authenticated:
-        return render_template('accounts/login.html',
-                               form=login_form)
-    return redirect(url_for('home_blueprint.index'))
-
-
-@blueprint.route('/register', methods=['GET', 'POST'])
-def register():
-    create_account_form = CreateAccountForm(request.form)
-    if 'register' in request.form:
-
-        username = request.form['username']
-        email = request.form['email']
-
-        # Check usename exists
-        user = User.query.filter_by(username=username).first()
-        if user:
-            return render_template('accounts/register.html',
-                                   msg='Username already registered',
-                                   success=False,
-                                   form=create_account_form)
-
-        # Check email exists
-        user = User.query.filter_by(email=email).first()
-        if user:
-            return render_template('accounts/register.html',
-                                   msg='Email already registered',
-                                   success=False,
-                                   form=create_account_form)
-
-        # else we can create the user
-        user = User(**request.form)
-        db.session.add(user)
-        db.session.commit()
-
-        # Delete user from session
-        logout_user()
+    try:
+        # Gérer à la fois JSON et form data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form
         
-        return render_template('accounts/register.html',
-                               msg='User created successfully.',
-                               success=True,
-                               form=create_account_form)
+        if not data or 'email' not in data or 'password' not in data:
+            if request.is_json:
+                return jsonify({'error': 'Email et mot de passe requis'}), 400
+            else:
+                return render_template('login.html', error='Email et mot de passe requis')
+        
+        user = User.query.filter_by(email=data['email']).first()
+        
+        if not user or not user.check_password(data['password']):
+            if request.is_json:
+                return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
+            else:
+                return render_template('login.html', error='Email ou mot de passe incorrect')
+        
+        access_token = create_access_token(identity=user.id)
+        
+        if request.is_json:
+            return jsonify({
+                'message': 'Connexion réussie',
+                'access_token': access_token,
+                'user': user.to_dict()
+            }), 200
+        else:
+            # Rediriger vers le dashboard après connexion réussie
+            response = redirect(url_for('admin.dashboard'))
+            response.set_cookie('access_token', access_token, httponly=True)
+            return response
+        
+    except Exception as e:
+        if request.is_json:
+            return jsonify({'error': str(e)}), 500
+        else:
+            return render_template('login.html', error=str(e))
 
-    else:
-        return render_template('accounts/register.html', form=create_account_form)
+# Route pour traiter le formulaire d'inscription
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    try:
+        # Gérer à la fois JSON et form data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form
+        
+        # Validation des données
+        required_fields = ['username', 'email', 'password', 'nom', 'prenom', 'role']
+        for field in required_fields:
+            if field not in data:
+                if request.is_json:
+                    return jsonify({'error': f'Le champ {field} est requis'}), 400
+                else:
+                    return render_template('register.html', error=f'Le champ {field} est requis')
+        
+        # Vérifier si l'utilisateur existe déjà
+        if User.query.filter_by(username=data['username']).first():
+            if request.is_json:
+                return jsonify({'error': 'Ce nom d\'utilisateur est déjà pris'}), 400
+            else:
+                return render_template('register.html', error='Ce nom d\'utilisateur est déjà pris')
+        
+        if User.query.filter_by(email=data['email']).first():
+            if request.is_json:
+                return jsonify({'error': 'Cet email est déjà utilisé'}), 400
+            else:
+                return render_template('register.html', error='Cet email est déjà utilisé')
+        
+        # Créer l'utilisateur
+        user = User(
+            username=data['username'],
+            email=data['email'],
+            nom=data['nom'],
+            prenom=data['prenom'],
+            role=UserRole(data['role'])
+        )
+        user.set_password(data['password'])
+        user.save()
+        
+        # Créer le profil selon le rôle
+        if user.role == UserRole.CANDIDAT:
+            candidat = Candidat(
+                user_id=user.id,
+                competences=data.get('competences', ''),
+                nationalite=data.get('nationalite', ''),
+                niveau_etude=data.get('niveau_etude', ''),
+                telephone=data.get('telephone', ''),
+                adresse=data.get('adresse', '')
+            )
+            candidat.save()
+        elif user.role == UserRole.RECRUTEUR:
+            recruteur = Recruteur(
+                user_id=user.id,
+                entreprise=data.get('entreprise', ''),
+                localisation=data.get('localisation', ''),
+                poste=data.get('poste', '')
+            )
+            recruteur.save()
+        
+        # Créer le token JWT
+        access_token = create_access_token(identity=user.id)
+        
+        if request.is_json:
+            return jsonify({
+                'message': 'Utilisateur créé avec succès',
+                'access_token': access_token,
+                'user': user.to_dict()
+            }), 201
+        else:
+            # Rediriger vers le login après inscription réussie
+            return redirect(url_for('auth.login_page', message='Inscription réussie! Vous pouvez maintenant vous connecter.'))
+        
+    except Exception as e:
+        if request.is_json:
+            return jsonify({'error': str(e)}), 500
+        else:
+            return render_template('register.html', error=str(e))
 
+@auth_bp.route('/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'Utilisateur non trouvé'}), 404
+        
+        profile_data = user.to_dict()
+        
+        # Ajouter les informations spécifiques au rôle
+        if user.role == UserRole.CANDIDAT and user.candidat:
+            profile_data['candidat'] = user.candidat.to_dict()
+        elif user.role == UserRole.RECRUTEUR and user.recruteur:
+            profile_data['recruteur'] = user.recruteur.to_dict()
+        
+        return jsonify(profile_data), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@blueprint.route('/logout')
+# Route de déconnexion
+@auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
-    logout_user()
-    return redirect(url_for('authentication.login'))
-
-
-# Errors
-
-@login_manager.unauthorized_handler
-def unauthorized_handler():
-    return render_template('home/page-403.html'), 403
-
-
-@blueprint.errorhandler(403)
-def access_forbidden(error):
-    return render_template('home/page-403.html'), 403
-
-
-@blueprint.errorhandler(404)
-def not_found_error(error):
-    return render_template('home/page-404.html'), 404
-
-
-@blueprint.errorhandler(500)
-def internal_error(error):
-    return render_template('home/page-500.html'), 500
-
-@blueprint.context_processor
-def has_github():
-    return {'has_github': bool(Config.GITHUB_ID) and bool(Config.GITHUB_SECRET)}
-
-@blueprint.context_processor
-def has_google():
-    return {'has_google': bool(Config.GOOGLE_ID) and bool(Config.GOOGLE_SECRET)}
+    response = redirect(url_for('auth.login_page'))
+    response.delete_cookie('access_token')
+    return response
