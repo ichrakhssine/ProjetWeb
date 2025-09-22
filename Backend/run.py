@@ -1,8 +1,3 @@
-# -*- encoding: utf-8 -*-
-"""
-Point d'entrée principal pour l'application RH.
-"""
-
 import os
 from flask_migrate import Migrate
 from apps import create_app, db

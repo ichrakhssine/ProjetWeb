@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-"home_blueprint = Blueprint('home', __name__)"
-home_blueprint = Blueprint('home_blueprint', __name__)
+# Utiliser un seul nom de blueprint cohérent
+blueprint = Blueprint('home', __name__)
 
 from apps.home import routes
