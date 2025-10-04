@@ -2,12 +2,10 @@ from enum import Enum
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from apps import db
-from apps.exceptions.exception import InvalidUsage
 
-# =======
-# Enums 
-# =======
 class UserRole(Enum):
     CANDIDAT = "candidat"
     RECRUTEUR = "recruteur"
@@ -24,9 +22,6 @@ class ApplicationStatus(Enum):
     ACCEPTEE = "acceptee"
     REJETEE = "rejetee"
 
-# ===============================
-# Classe de base abstraite
-# ===============================
 class BaseModel(db.Model):
     __abstract__ = True
 
@@ -37,7 +32,7 @@ class BaseModel(db.Model):
         except SQLAlchemyError as e:
             db.session.rollback()
             error = str(e.__dict__['orig'])
-            raise InvalidUsage(error, 422)
+            raise Exception(error)
 
     def delete(self):
         try:
@@ -46,13 +41,41 @@ class BaseModel(db.Model):
         except SQLAlchemyError as e:
             db.session.rollback()
             error = str(e.__dict__['orig'])
-            raise InvalidUsage(error, 422)
-        
+            raise Exception(error)
 
+# AJOUTE CETTE CLASSE USER
+class User(UserMixin, BaseModel):
+    __tablename__ = "users"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    nom = db.Column(db.String(100), nullable=False)
+    prenom = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.Enum(UserRole), nullable=False, default=UserRole.CANDIDAT)
+    date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    est_actif = db.Column(db.Boolean, default=True)
+    
+    # Relations
+    candidat = db.relationship("Candidat", back_populates="user", uselist=False)
+    recruteur = db.relationship("Recruteur", back_populates="user", uselist=False)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
+    
+    def is_recruteur(self):
+        return self.role == UserRole.RECRUTEUR
+    
+    def is_candidat(self):
+        return self.role == UserRole.CANDIDAT
 
-# ===============================
-# Classe Candidat
-# ===============================
+# TES CLASSES EXISTANTES (modifiées légèrement)
 class Candidat(BaseModel):
     __tablename__ = "candidats"
     
@@ -64,17 +87,10 @@ class Candidat(BaseModel):
     telephone = db.Column(db.String(20))
     adresse = db.Column(db.Text)
     
-    # Relations
     user = db.relationship("User", back_populates="candidat")
     documents = db.relationship("Document", back_populates="candidat", lazy=True)
     candidatures = db.relationship("Candidature", back_populates="candidat", lazy=True)
-    
-    def __repr__(self):
-        return f"<Candidat {self.user.prenom} {self.user.nom}>"
 
-# ===============================
-# Classe Recruteur
-# ===============================
 class Recruteur(BaseModel):
     __tablename__ = "recruteurs"
     
@@ -84,16 +100,9 @@ class Recruteur(BaseModel):
     localisation = db.Column(db.String(100))
     poste = db.Column(db.String(100))
     
-    # Relations
     user = db.relationship("User", back_populates="recruteur")
     offres = db.relationship("OffreEmploi", back_populates="recruteur", lazy=True)
-    
-    def __repr__(self):
-        return f"<Recruteur {self.user.prenom} {self.user.nom} - {self.entreprise}>"
 
-# ===============================
-# Classe Document
-# ===============================
 class Document(BaseModel):
     __tablename__ = "documents"
     
@@ -103,18 +112,10 @@ class Document(BaseModel):
     chemin_fichier = db.Column(db.String(255), nullable=False)
     format = db.Column(db.String(10), default="pdf")
     date_upload = db.Column(db.DateTime, default=datetime.utcnow)
-    
     candidat_id = db.Column(db.Integer, db.ForeignKey("candidats.id"), nullable=False)
     
-    # Relation
     candidat = db.relationship("Candidat", back_populates="documents")
-    
-    def __repr__(self):
-        return f"<Document {self.titre} ({self.type_document})>"
 
-# ===============================
-# Classe OffreEmploi
-# ===============================
 class OffreEmploi(BaseModel):
     __tablename__ = "offres_emploi"
     
@@ -128,19 +129,11 @@ class OffreEmploi(BaseModel):
     date_publication = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     date_expiration = db.Column(db.DateTime)
     statut = db.Column(db.String(20), default="ouverte")
-    
     recruteur_id = db.Column(db.Integer, db.ForeignKey("recruteurs.id"), nullable=False)
     
-    # Relations
     recruteur = db.relationship("Recruteur", back_populates="offres")
     candidatures = db.relationship("Candidature", back_populates="offre", lazy=True)
-    
-    def __repr__(self):
-        return f"<OffreEmploi {self.titre} - {self.recruteur.entreprise}>"
 
-# ===============================
-# Classe Candidature
-# ===============================
 class Candidature(BaseModel):
     __tablename__ = "candidatures"
     
@@ -149,14 +142,9 @@ class Candidature(BaseModel):
     statut = db.Column(db.Enum(ApplicationStatus), default=ApplicationStatus.EN_ATTENTE)
     lettre_motivation = db.Column(db.Text)
     cv_id = db.Column(db.Integer, db.ForeignKey("documents.id"))
-    
     candidat_id = db.Column(db.Integer, db.ForeignKey("candidats.id"), nullable=False)
     offre_id = db.Column(db.Integer, db.ForeignKey("offres_emploi.id"), nullable=False)
     
-    # Relations
     cv = db.relationship("Document", foreign_keys=[cv_id])
     candidat = db.relationship("Candidat", back_populates="candidatures")
     offre = db.relationship("OffreEmploi", back_populates="candidatures")
-    
-    def __repr__(self):
-        return f"<Candidature {self.candidat.user.prenom} pour {self.offre.titre}>"

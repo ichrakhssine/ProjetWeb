@@ -1,0 +1,304 @@
+/* Variables du thème Galaxy */
+:root {
+  /* Couleurs principales Galaxy */
+  --galaxy-dark: #0a0a1a;
+  --galaxy-darker: #050510;
+  --galaxy-purple: #6c43b5;
+  --galaxy-blue: #4a6cf7;
+  --galaxy-pink: #c645b8;
+  --galaxy-cyan: #00e5ff;
+  --galaxy-gradient: linear-gradient(135deg, var(--galaxy-purple), var(--galaxy-blue), var(--galaxy-pink));
+  --galaxy-gradient-light: linear-gradient(135deg, #8a63d2, #6b8cff, #d96bce);
+  
+  /* Texte */
+  --text-primary: #ffffff;
+  --text-secondary: #b8b8d0;
+  --text-muted: #8a8aa8;
+  
+  /* Arrière-plans */
+  --bg-primary: rgba(10, 10, 26, 0.95);
+  --bg-secondary: rgba(15, 15, 35, 0.8);
+  --bg-card: rgba(20, 20, 40, 0.7);
+  --bg-hover: rgba(108, 67, 181, 0.2);
+  
+  /* Bordures */
+  --border-primary: rgba(108, 67, 181, 0.3);
+  --border-glow: rgba(74, 108, 247, 0.5);
+  
+  /* Ombres */
+  --shadow-glow: 0 0 20px rgba(108, 67, 181, 0.3);
+  --shadow-intense: 0 0 30px rgba(74, 108, 247, 0.4);
+}
+
+/* RESET COMPLET POUR PLEIN ÉCRAN */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--galaxy-darker);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.App {
+  min-height: 100vh;
+  width: 100%;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(108, 67, 181, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(74, 108, 247, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(198, 69, 184, 0.1) 0%, transparent 50%),
+    var(--galaxy-darker);
+}
+
+/* Container principal - PLEINE LARGEUR */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Header en pleine largeur */
+header {
+  width: 100%;
+  background: var(--bg-primary);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid var(--border-primary);
+  position: relative;
+}
+
+.header-top, .search-bar {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Contenu principal en pleine largeur */
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  margin: 2rem auto;
+  max-width: 1400px;
+  width: 100%;
+  padding: 0 2rem;
+  min-height: 70vh;
+}
+
+/* Effets de lumière galactique */
+.galaxy-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.galaxy-glow::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  width: 300px;
+  height: 300px;
+  background: var(--galaxy-purple);
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.1;
+  animation: float 6s ease-in-out infinite;
+}
+
+.galaxy-glow::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  width: 400px;
+  height: 400px;
+  background: var(--galaxy-blue);
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.08;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+/* Étoiles */
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -2;
+}
+
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle var(--duration, 4s) infinite var(--delay, 0s);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Composants communs */
+.galaxy-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-primary);
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: var(--shadow-glow);
+  transition: all 0.3s ease;
+}
+
+.galaxy-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-intense);
+  transform: translateY(-2px);
+}
+
+.galaxy-button {
+  background: var(--galaxy-gradient);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.galaxy-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.galaxy-button:hover::before {
+  left: 100%;
+}
+
+.galaxy-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(108, 67, 181, 0.4);
+}
+
+.galaxy-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.galaxy-input:focus {
+  outline: none;
+  border-color: var(--galaxy-cyan);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.galaxy-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Navigation */
+.navigation {
+  width: 100%;
+  background: var(--bg-secondary);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+/* Footer en pleine largeur */
+footer {
+  width: 100%;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-primary);
+  margin-top: auto;
+}
+
+/* Ajustements pour les grandes écrans */
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1600px;
+  }
+  
+  .main-content {
+    max-width: 1600px;
+    grid-template-columns: 1fr 400px;
+  }
+}
+
+/* Pour les très grands écrans */
+@media (min-width: 2000px) {
+  .container {
+    max-width: 1800px;
+  }
+  
+  .main-content {
+    max-width: 1800px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+  
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .header-top, .search-bar {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .main-content {
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+}

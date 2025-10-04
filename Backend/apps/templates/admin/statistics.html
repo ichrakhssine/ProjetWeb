@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-chart-bar"></i> Statistiques</h1>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0">Statistiques de la plateforme</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">Les statistiques détaillées seront disponibles prochainement.</p>
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="display-4 text-primary">{{ stats.total_users if stats else 0 }}</div>
+                <small class="text-muted">Utilisateurs total</small>
+            </div>
+            <div class="col-md-3">
+                <div class="display-4 text-success">{{ stats.total_candidats if stats else 0 }}</div>
+                <small class="text-muted">Candidats</small>
+            </div>
+            <div class="col-md-3">
+                <div class="display-4 text-info">{{ stats.total_recruteurs if stats else 0 }}</div>
+                <small class="text-muted">Recruteurs</small>
+            </div>
+            <div class="col-md-3">
+                <div class="display-4 text-warning">{{ stats.total_offres if stats else 0 }}</div>
+                <small class="text-muted">Offres</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

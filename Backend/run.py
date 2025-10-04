@@ -1,44 +1,46 @@
-import os
-from flask_migrate import Migrate
 from apps import create_app, db
-from apps.config import config_dict
-from dotenv import load_dotenv
+from apps.models import User, UserRole
 
-# Charger les variables d'environnement
-load_dotenv()
+app = create_app()
 
-# Déterminer le mode de configuration (Debug ou Production)
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
-CONFIG_MODE = 'Debug' if DEBUG else 'Production'
-
-try:
-    # Charger la configuration
-    app_config = config_dict[CONFIG_MODE]
-except KeyError:
-    raise ValueError(f"Erreur : Mode de configuration invalide. "
-                     f"Valeurs attendues : [Debug, Production]. Reçu : {CONFIG_MODE}")
-
-# Initialiser l'application Flask
-app = create_app(app_config)
-
-# Configurer Flask-Migrate pour les migrations
-Migrate(app, db)
-
-# Créer les tables de la base de données
-with app.app_context():
-    try:
+def create_admin_user():
+    with app.app_context():
         db.create_all()
-        app.logger.info("Tables de la base de données créées avec succès.")
-    except Exception as e:
-        app.logger.error(f"Erreur lors de la création des tables : {str(e)}")
-        raise
+        
+        # Vérifier si l'admin existe déjà
+        admin_email = 'admin@example.com'
+        admin_user = User.query.filter_by(email=admin_email).first()
+        
+        if not admin_user:
+            print("🐛 Création du compte admin...")
+            admin = User(
+                email=admin_email,
+                nom='Admin',
+                prenom='System',
+                role=UserRole.ADMIN
+            )
+            admin.set_password('admin123')
+            try:
+                db.session.add(admin)
+                db.session.commit()
+                print('✅ Compte admin créé avec succès')
+                print('   Email: admin@example.com')
+                print('   Mot de passe: admin123')
+            except Exception as e:
+                print(f'❌ Erreur création admin: {e}')
+        else:
+            print('✅ Compte admin existe déjà')
+            print(f'   ID: {admin_user.id}')
+            print(f'   Email: {admin_user.email}')
+            print(f'   Rôle: {admin_user.role}')
+            
+        # Vérifier tous les utilisateurs dans la base
+        all_users = User.query.all()
+        print(f"🐛 Utilisateurs dans la base: {len(all_users)}")
+        for u in all_users:
+            print(f"🐛 - {u.email} ({u.role})")
 
-# Logs au démarrage
-app.logger.info(f"Mode DEBUG : {DEBUG}")
-app.logger.info(f"Base de données : {app_config.SQLALCHEMY_DATABASE_URI}")
-app.logger.info(f"Configuration chargée : {CONFIG_MODE}")
-
-if __name__ == "__main__":
-    HOST = os.getenv('APP_HOST', '0.0.0.0')
-    PORT = int(os.getenv('APP_PORT', 8000))
-    app.run(host=HOST, port=PORT, debug=DEBUG)
+if __name__ == '__main__':
+    create_admin_user()
+    print('🚀 Serveur démarré sur http://localhost:5000')
+    app.run(debug=True, host='0.0.0.0', port=5000)
